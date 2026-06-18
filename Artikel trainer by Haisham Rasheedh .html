@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title data-id="th-modified">der die das — Trainer</title>
+<style>
+  :root {
+    /* Requested Web App Background Color */
+    --bg: #D3D3D3;
+    --paper: #FFFFFF;
+    --line: #E5E5EA;
+    
+    /* Article Color Schemes */
+    --der: #007AFF; /* Blue */
+    --der-soft: #E5F1FF; /* Light Blue */
+    --die: #FF2D55; /* Pink */
+    --die-soft: #FFEAF0; /* Pink soft */
+    --das: #000000; /* Black */
+    --das-soft: #F2F2F7;
+    
+    --wrong: #FF3B30;
+    --text-main: #1C1C1E;
+    --text-muted: #6E6E73;
+    
+    --sans: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); }
+  
+  body {
+    font-family: var(--sans);
+    color: var(--text-main);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Mobile Layout Wrapper */
+  .app-container {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    padding: 20px 16px 40px;
+  }
+
+  /* Header Branding */
+  header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  header h1 {
+    font-size: 24px;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+  .author-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin: 4px 0 0 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Interactive Quiz Card */
+  .card {
+    background: var(--paper);
+    border-radius: 16px;
+    padding: 30px 20px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin-bottom: 16px;
+    position: relative;
+    border: 2px solid transparent;
+    transition: background 0.25s ease, border-color 0.25s ease, transform 0.1s;
+  }
+  
+  /* Initial Gender-coded Backgrounds on Display */
+  .card.card-masculine { background: var(--der-soft); border-color: var(--der); }
+  .card.card-feminine { background: var(--die-soft); border-color: var(--die); }
+  .card.card-neuter { background: var(--paper); border-color: var(--das); }
+
+  /* Card Text Colors based on active word's gender */
+  .card.card-masculine .word-display { color: var(--der); }
+  .card.card-feminine .word-display { color: var(--die); }
+  .card.card-neuter .word-display { color: var(--das); }
+
+  /* --- HARD MODE OVERRIDES (No Colors) --- */
+  .card.no-hints {
+    background: var(--paper) !important;
+    border-color: transparent !important;
+  }
+  .card.no-hints .word-display,
+  .card.no-hints .feedback {
+    color: #000000 !important;
+  }
+
+  /* Error state overrides */
+  .card.flash-wrong {
+    background: var(--wrong) !important;
+    border-color: var(--wrong) !important;
+    animation: shake 0.3s;
+  }
+  .card.flash-wrong * { color: #FFF !important; }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+  .counter {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 8px;
+  }
+  
+  .audio-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .speaker-btn {
+    background: rgba(0,0,0,0.05);
+    border: none;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--text-main);
+  }
+  
+  .toggle-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    text-transform: uppercase;
+  }
+  .toggle-label input { margin: 0; cursor: pointer; }
+
+  .hard-mode-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+
+  .word-display {
+    font-size: 44px;
+    font-weight: 800;
+    margin: 0px 0 5px;
+    letter-spacing: -1px;
+    transition: color 0.2s ease;
+  }
+  .gloss {
+    font-size: 16px;
+    color: var(--text-muted);
+  }
+
+  .feedback {
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: 800;
+    min-height: 22px;
+  }
+  .feedback.der { color: var(--der); }
+  .feedback.die { color: var(--die); }
+  .feedback.das { color: var(--das); }
+
+  /* User Choices Grids */
+  .choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .choice {
+    background: var(--paper);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    padding: 16px 0;
+    font-size: 20px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .choice span {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+  
+  .choice.der { color: var(--der); }
+  .choice.die { color: var(--die); }
+  .choice.das { color: var(--das); }
+  
+  .choice:disabled { opacity: 0.7; }
+  .choice.reveal-correct { border-color: currentColor; background: rgba(0,0,0,0.03); }
+  .choice.reveal-wrong { opacity: 0.4; }
+
+  /* Reordered Rules Panel */
+  .rules-section {
+    background: var(--paper);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .rules-section h3 {
+    margin: 0 0 14px;
+    font-size: 15px;
+    font-weight: 800;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 8px;
+  }
+
+  /* Table styling */
+  .rules-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+  .rules-table th, .rules-table td {
+    padding: 12px 8px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
+  }
+  .rules-table th {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    padding-top: 0;
+  }
+  .article-cell { font-weight: 800; font-size: 16px; }
+  .suffix-cell { font-weight: 600; }
+  
+  .row-die .article-cell { color: var(--die); }
+  .row-der .article-cell { color: var(--der); }
+  .row-das .article-cell { color: var(--das); }
+
+  /* Concept rules shifted downward */
+  .concept-box {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    line-height: 1.4;
+    border: 1px solid transparent;
+  }
+  .concept-box strong { display: block; margin-bottom: 2px; font-size: 13px; text-transform: uppercase; }
+  
+  /* Highlight mechanism for active helper rules */
+  .rule-highlight {
+    background-color: #FFF9C4 !important; /* Soft gold highlight focus */
+    border: 1px solid #FBC02D !important;
+    border-radius: 8px;
+    transition: background-color 0.25s ease;
+  }
+  tr.rule-highlight td { border-bottom: none; }
+
+  /* Stats Panel */
+  .stats-board {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    background: var(--paper);
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  }
+  .stat-block { display: flex; flex-direction: column; align-items: center; }
+  .stat-label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 4px; }
+  .stat-val { font-size: 24px; font-weight: 800; }
+
+  /* Incorrect Answers Log */
+  .wrong-log {
+    background: var(--paper);
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  }
+  .wrong-log h4 {
+    margin: 0 0 10px;
+    color: var(--wrong);
+    font-size: 14px;
+    text-transform: uppercase;
+  }
+  .wrong-list {
+    list-style: none; padding: 0; margin: 0;
+    max-height: 150px; overflow-y: auto;
+  }
+  .wrong-list li {
+    padding: 6px 0;
+    font-size: 15px;
+    font-weight: 700;
+    border-bottom: 1px solid var(--line);
+  }
+  
+  .source-link {
+    display: block;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 20px;
+    text-decoration: none;
+  }
+  .source-link:hover { text-decoration: underline; }
+
+  /* Intro Start Modal Overlay */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(211,211,211,0.96);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 50; padding: 20px;
+  }
+  .overlay-box {
+    background: var(--paper);
+    padding: 30px 20px;
+    border-radius: 16px;
+    text-align: center;
+    max-width: 340px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  }
+  .overlay-box h2 { margin: 0 0 10px; font-size: 22px; font-weight: 800; }
+  .overlay-box p { font-size: 15px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.4; }
+  .start-btn {
+    background: var(--der);
+    color: #fff;
+    border: none;
+    padding: 14px 24px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 8px;
+    width: 100%;
+    cursor: pointer;
+  }
+</style>
+<meta property="og:title" content="der die das — Trainer" data-id="th-modified"><meta property="og:image" content="https://tiiny.host/assets/logo-purple-bg.png" data-id="th-modified"><meta property="og:image:width" content="1501" data-id="th-modified"><meta property="og:image:height" content="1501" data-id="th-modified"><meta property="og:image:type" content="image/png" data-id="th-modified"><meta property="og:url" content="https://diedas.tiiny.site/" data-id="th-modified"><meta property="og:type" content="website" data-id="th-modified"><script defer data-domain="diedas.tiiny.site" src="https://analytics.tiiny.site/js/plausible.js"></script><script type="text/javascript" src="https://tiiny.host/ad-script.js"></script></head>
+<body>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-box">
+    <h2>der · die · das</h2>
+    <p>Card background hints the gender immediately. Once you guess, the app speaks the word together with its matching article.</p>
+    <button class="start-btn" id="startBtn">Start Training</button>
+  </div>
+</div>
+
+<div class="app-container">
+  <header>
+    <h1>Artikel-Trainer</h1>
+    <p class="author-name">Haisham Rasheedh</p>
+  </header>
+
+  <main>
+    <div class="card" id="card">
+      <div class="card-top">
+        <span class="counter" id="counterLabel">Word 1</span>
+        <div class="audio-controls">
+          <button class="speaker-btn" id="speakerBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+              <polygon points="3 9 7 9 12 4 12 20 7 15 3 15 3 9"></polygon>
+              <path d="M16 8a4 4 0 0 1 0 8"></path>
+            </svg>
+          </button>
+          <label class="toggle-label">
+            <input type="checkbox" id="voiceToggle" checked> Voice
+          </label>
+        </div>
+      </div>
+      
+      <!-- New Toggle Above Word Display -->
+      <div class="hard-mode-container">
+        <label class="toggle-label">
+          <input type="checkbox" id="colorToggle"> Disable Colors
+        </label>
+      </div>
+
+      <div class="word-display" id="wordDisplay">—</div>
+      <div class="gloss" id="glossDisplay">loading</div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+
+    <div class="choices" id="choices">
+      <button class="choice der" data-gender="der">DER<span>maskulin</span></button>
+      <button class="choice die" data-gender="die">DIE<span>feminin</span></button>
+      <button class="choice das" data-gender="das">DAS<span>neutrum</span></button>
+    </div>
+
+    <div class="rules-section">
+      <h3>Grammar Suffixes (Predictive Guide)</h3>
+      <table class="rules-table">
+        <thead>
+          <tr>
+            <th>Article</th>
+            <th>Suffixes (Word Endings)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-die" id="suffixRow-die">
+            <td class="article-cell">Die</td>
+            <td class="suffix-cell">-heit, -keit, -ung, -schaft, -tät, -ion, -ie<br>
+              <span style="font-weight:400; font-size:12px; color:var(--text-muted);">e.g., Freiheit, Zeitung</span>
+            </td>
+          </tr>
+          <tr class="row-der" id="suffixRow-der">
+            <td class="article-cell">Der</td>
+            <td class="suffix-cell">-ismus, -ner, -ling, -or<br>
+              <span style="font-weight:400; font-size:12px; color:var(--text-muted);">e.g., Optimismus, Motor</span>
+            </td>
+          </tr>
+          <tr class="row-das" id="suffixRow-das">
+            <td class="article-cell">Das</td>
+            <td class="suffix-cell">-ment, -um, -chen, -lein<br>
+              <span style="font-weight:400; font-size:12px; color:var(--text-muted);">e.g., Museum, Mädchen</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Biological Context</h3>
+      <div class="concept-box" id="ruleNaturalMasculine">
+        <strong style="color:var(--der);">Natural Masculine</strong>
+        Male persons, male professions (e.g., Gärtner), and biological males default to the article "der".
+      </div>
+      <div class="concept-box" id="ruleNaturalFeminine">
+        <strong style="color:var(--die);">Natural Feminine</strong>
+        Female persons, female professions (e.g., Frau), and biological females default to the article "die".
+      </div>
+    </div>
+
+    <div class="stats-board">
+      <div class="stat-block">
+        <span class="stat-label">Accuracy</span>
+        <span class="stat-val" id="accuracyNum">—</span>
+      </div>
+      <div class="stat-block">
+        <span class="stat-label">Streak</span>
+        <span class="stat-val" id="streakNum">0</span>
+      </div>
+      <div class="stat-block">
+        <span class="stat-label">Total</span>
+        <span class="stat-val" id="totalNum">0</span>
+      </div>
+    </div>
+
+    <div class="wrong-log">
+      <h4>Incorrect Guesses</h4>
+      <ul class="wrong-list" id="wrongList">
+        <!-- Appends dynamically here -->
+      </ul>
+    </div>
+    
+    <a href="https://learngerman.dw.com/en/articles-and-gender/l-38209355" target="_blank" class="source-link">
+      Verified Source: DW Learn German & Duden Grammar Rules
+    </a>
+  </main>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // Over 500+ common German words library
+  const WORDS = [
+    {a:"der", w:"Tisch", en:"table", rule:"none"}, {a:"der", w:"Stuhl", en:"chair", rule:"none"},
+    {a:"der", w:"Mann", en:"man", rule:"nat-masc"}, {a:"der", w:"Optimismus", en:"optimism", rule:"suffix-der"},
+    {a:"der", w:"Schmetterling", en:"butterfly", rule:"suffix-der"}, {a:"der", w:"Motor", en:"motor", rule:"suffix-der"},
+    {a:"der", w:"Gärtner", en:"gardener", rule:"nat-masc"}, {a:"der", w:"Zwilling", en:"twin", rule:"suffix-der"},
+    {a:"der", w:"Ventilator", en:"fan", rule:"suffix-der"}, {a:"der", w:"Kapitalismus", en:"capitalism", rule:"suffix-der"},
+    {a:"die", w:"Frau", en:"woman", rule:"nat-fem"}, {a:"die", w:"Freiheit", en:"freedom", rule:"suffix-die"},
+    {a:"die", w:"Zeitung", en:"newspaper", rule:"suffix-die"}, {a:"die", w:"Universität", en:"university", rule:"suffix-die"},
+    {a:"die", w:"Krankheit", en:"illness", rule:"suffix-die"}, {a:"die", w:"Möglichkeit", en:"possibility", rule:"suffix-die"},
+    {a:"die", w:"Gemeinschaft", en:"community", rule:"suffix-die"}, {a:"die", w:"Station", en:"station", rule:"suffix-die"},
+    {a:"die", w:"Diskussion", en:"discussion", rule:"suffix-die"}, {a:"die", w:"Energie", en:"energy", rule:"suffix-die"},
+    {a:"das", w:"Haus", en:"house", rule:"none"}, {a:"das", w:"Wasser", en:"water", rule:"none"},
+    {a:"das", w:"Mädchen", en:"girl", rule:"suffix-das"}, {a:"das", w:"Dokument", en:"document", rule:"suffix-das"},
+    {a:"das", w:"Museum", en:"museum", rule:"suffix-das"}, {a:"das", w:"Kätzchen", en:"kitten", rule:"suffix-das"},
+    {a:"das", w:"Büchlein", en:"booklet", rule:"suffix-das"}, {a:"das", w:"Experiment", en:"experiment", rule:"suffix-das"},
+    {a:"das", w:"Zentrum", en:"center", rule:"suffix-das"}, {a:"das", w:"Häuschen", en:"small house", rule:"suffix-das"},
+    {a:"der", w:"Apfel", en:"apple", rule:"none"}, {a:"der", w:"Baum", en:"tree", rule:"none"},
+    {a:"der", w:"Hund", en:"dog", rule:"none"}, {a:"der", w:"Vater", en:"father", rule:"nat-masc"},
+    {a:"der", w:"Bruder", en:"brother", rule:"nat-masc"}, {a:"der", w:"Sohn", en:"son", rule:"nat-masc"},
+    {a:"der", w:"Onkel", en:"uncle", rule:"nat-masc"}, {a:"der", w:"Opa", en:"grandpa", rule:"nat-masc"},
+    {a:"der", w:"Monat", en:"month", rule:"none"}, {a:"der", w:"Tag", en:"day", rule:"none"},
+    {a:"der", w:"Morgen", en:"morning", rule:"none"}, {a:"der", w:"Abend", en:"evening", rule:"none"},
+    {a:"der", w:"Sommer", en:"summer", rule:"none"}, {a:"der", w:"Winter", en:"winter", rule:"none"},
+    {a:"der", w:"Herbst", en:"autumn", rule:"none"}, {a:"der", w:"Frühling", en:"spring", rule:"none"},
+    {a:"der", w:"Regen", en:"rain", rule:"none"}, {a:"der", w:"Schnee", en:"snow", rule:"none"},
+    {a:"der", w:"Wind", en:"wind", rule:"none"}, {a:"der", w:"Sturm", en:"storm", rule:"none"},
+    {a:"der", w:"Kaffee", en:"coffee", rule:"none"}, {a:"der", w:"Tee", en:"tea", rule:"none"},
+    {a:"der", w:"Saft", en:"juice", rule:"none"}, {a:"der", w:"Wein", en:"wine", rule:"none"},
+    {a:"der", w:"Käse", en:"cheese", rule:"none"}, {a:"der", w:"Fisch", en:"fish", rule:"none"},
+    {a:"der", w:"Kuchen", en:"cake", rule:"none"}, {a:"der", w:"Salat", en:"salad", rule:"none"},
+    {a:"der", w:"Zucker", en:"sugar", rule:"none"}, {a:"der", w:"Pfeffer", en:"pepper", rule:"none"},
+    {a:"der", w:"Bus", en:"bus", rule:"none"}, {a:"der", w:"Zug", en:"train", rule:"none"},
+    {a:"der", w:"Bahnhof", en:"train station", rule:"none"}, {a:"der", w:"Flughafen", en:"airport", rule:"none"},
+    {a:"der", w:"Markt", en:"market", rule:"none"}, {a:"der", w:"Supermarkt", en:"supermarket", rule:"none"},
+    {a:"der", w:"Laden", en:"shop", rule:"none"}, {a:"der", w:"Garten", en:"garden", rule:"none"},
+    {a:"der", w:"Park", en:"park", rule:"none"}, {a:"der", w:"Wald", en:"forest", rule:"none"},
+    {a:"der", w:"Berg", en:"mountain", rule:"none"}, {a:"der", w:"Fluss", en:"river", rule:"none"},
+    {a:"der", w:"Schlüssel", en:"key", rule:"none"}, {a:"der", w:"Brief", en:"letter", rule:"none"},
+    {a:"der", w:"Umschlag", en:"envelope", rule:"none"}, {a:"der", w:"Kuli", en:"pen", rule:"none"},
+    {a:"der", w:"Bleistift", en:"pencil", rule:"none"}, {a:"der", w:"Computer", en:"computer", rule:"none"},
+    {a:"der", w:"Bildschirm", en:"screen", rule:"none"}, {a:"der", w:"Drucker", en:"printer", rule:"none"},
+    {a:"der", w:"Fernseher", en:"TV", rule:"none"}, {a:"der", w:"Teppich", en:"carpet", rule:"none"},
+    {a:"der", w:"Schrank", en:"closet", rule:"none"}, {a:"der", w:"Kühlschrank", en:"fridge", rule:"none"},
+    {a:"der", w:"Herd", en:"stove", rule:"none"}, {a:"der", w:"Balkon", en:"balcony", rule:"none"},
+    {a:"der", w:"Keller", en:"basement", rule:"none"}, {a:"der", w:"Müll", en:"trash", rule:"none"},
+    {a:"der", w:"Beruf", en:"profession", rule:"none"}, {a:"der", w:"Lehrer", en:"teacher", rule:"nat-masc"},
+    {a:"der", w:"Arzt", en:"doctor", rule:"nat-masc"}, {a:"der", w:"Student", en:"student", rule:"nat-masc"},
+    {a:"der", w:"Kunde", en:"customer", rule:"nat-masc"}, {a:"der", w:"Chef", en:"boss", rule:"nat-masc"},
+    {a:"der", w:"Kollege", en:"colleague", rule:"nat-masc"}, {a:"der", w:"Nachbar", en:"neighbor", rule:"nat-masc"},
+    {a:"der", w:"Freund", en:"friend", rule:"nat-masc"}, {a:"der", w:"Kopf", en:"head", rule:"none"},
+    {a:"der", w:"Arm", en:"arm", rule:"none"}, {a:"der", w:"Finger", en:"finger", rule:"none"},
+    {a:"der", w:"Fuß", en:"foot", rule:"none"}, {a:"der", w:"Bauch", en:"stomach", rule:"none"},
+    {a:"der", w:"Rücken", en:"back", rule:"none"}, {a:"der", w:"Zahn", en:"tooth", rule:"none"},
+    {a:"der", w:"Mund", en:"mouth", rule:"none"}, {a:"der", w:"Hals", en:"neck", rule:"none"},
+    {a:"die", w:"Mutter", en:"mother", rule:"nat-fem"}, {a:"die", w:"Tochter", en:"daughter", rule:"nat-fem"},
+    {a:"die", w:"Schwester", en:"sister", rule:"nat-fem"}, {a:"die", w:"Tante", en:"aunt", rule:"nat-fem"},
+    {a:"die", w:"Oma", en:"grandma", rule:"nat-fem"}, {a:"die", w:"Nacht", en:"night", rule:"none"},
+    {a:"die", w:"Woche", en:"week", rule:"none"}, {a:"die", w:"Sonne", en:"sun", rule:"none"},
+    {a:"die", w:"Wolke", en:"cloud", rule:"none"}, {a:"die", w:"Blume", en:"flower", rule:"none"},
+    {a:"die", w:"Pflanze", en:"plant", rule:"none"}, {a:"die", w:"Natur", en:"nature", rule:"none"},
+    {a:"die", w:"Welt", en:"world", rule:"none"}, {a:"die", w:"Milch", en:"milk", rule:"none"},
+    {a:"die", w:"Butter", en:"butter", rule:"none"}, {a:"die", w:"Wurst", en:"sausage", rule:"none"},
+    {a:"die", w:"Suppe", en:"soup", rule:"none"}, {a:"die", w:"Kartoffel", en:"potato", rule:"none"},
+    {a:"die", w:"Tomate", en:"tomato", rule:"none"}, {a:"die", w:"Banane", en:"banana", rule:"none"},
+    {a:"die", w:"Pizza", en:"pizza", rule:"none"}, {a:"die", w:"Tür", en:"door", rule:"none"},
+    {a:"die", w:"Wand", en:"wall", rule:"none"}, {a:"die", w:"Decke", en:"ceiling/blanket", rule:"none"},
+    {a:"die", w:"Treppe", en:"stairs", rule:"none"}, {a:"die", w:"Küche", en:"kitchen", rule:"none"},
+    {a:"die", w:"Toilette", en:"toilet", rule:"none"}, {a:"die", w:"Dusche", en:"shower", rule:"none"},
+    {a:"die", w:"Lampe", en:"lamp", rule:"none"}, {a:"die", w:"Uhr", en:"clock", rule:"none"},
+    {a:"die", w:"Tasche", en:"bag", rule:"none"}, {a:"die", w:"Brille", en:"glasses", rule:"none"},
+    {a:"die", w:"Straße", en:"street", rule:"none"}, {a:"die", w:"Stadt", en:"city", rule:"none"},
+    {a:"die", w:"Bank", en:"bank/bench", rule:"none"}, {a:"die", w:"Post", en:"post office", rule:"none"},
+    {a:"die", w:"Apotheke", en:"pharmacy", rule:"none"}, {a:"die", w:"Bäckerei", en:"bakery", rule:"none"},
+    {a:"die", w:"Schule", en:"school", rule:"none"}, {a:"die", w:"Klasse", en:"class", rule:"none"},
+    {a:"die", w:"Arbeit", en:"work", rule:"none"}, {a:"die", w:"Pause", en:"break", rule:"none"},
+    {a:"die", w:"Frage", en:"question", rule:"none"}, {a:"die", w:"Antwort", en:"answer", rule:"none"},
+    {a:"die", w:"Idee", en:"idea", rule:"none"}, {a:"die", w:"Sprache", en:"language", rule:"none"},
+    {a:"die", w:"Musik", en:"music", rule:"none"}, {a:"die", w:"Kunst", en:"art", rule:"none"},
+    {a:"die", w:"Reise", en:"journey", rule:"none"}, {a:"die", w:"Fahrkarte", en:"ticket", rule:"none"},
+    {a:"die", w:"Hand", en:"hand", rule:"none"}, {a:"die", w:"Nase", en:"nose", rule:"none"},
+    {a:"die", w:"Schulter", en:"shoulder", rule:"none"}, {a:"die", w:"Lehrerin", en:"female teacher", rule:"nat-fem"},
+    {a:"die", w:"Ärztin", en:"female doctor", rule:"nat-fem"}, {a:"die", w:"Studentin", en:"female student", rule:"nat-fem"},
+    {a:"die", w:"Chefin", en:"female boss", rule:"nat-fem"}, {a:"die", w:"Freundin", en:"girlfriend/female friend", rule:"nat-fem"},
+    {a:"die", w:"Liebe", en:"love", rule:"none"}, {a:"die", w:"Angst", en:"fear", rule:"none"},
+    {a:"das", w:"Kind", en:"child", rule:"none"}, {a:"das", w:"Baby", en:"baby", rule:"none"},
+    {a:"das", w:"Jahr", en:"year", rule:"none"}, {a:"das", w:"Wetter", en:"weather", rule:"none"},
+    {a:"das", w:"Feuer", en:"fire", rule:"none"}, {a:"das", w:"Eis", en:"ice", rule:"none"},
+    {a:"das", w:"Brot", en:"bread", rule:"none"}, {a:"das", w:"Brötchen", en:"bread roll", rule:"suffix-das"},
+    {a:"das", w:"Fleisch", en:"meat", rule:"none"}, {a:"das", w:"Ei", en:"egg", rule:"none"},
+    {a:"das", w:"Gemüse", en:"vegetables", rule:"none"}, {a:"das", w:"Obst", en:"fruit", rule:"none"},
+    {a:"das", w:"Salz", en:"salt", rule:"none"}, {a:"das", w:"Öl", en:"oil", rule:"none"},
+    {a:"das", w:"Bier", en:"beer", rule:"none"}, {a:"das", w:"Auto", en:"car", rule:"none"},
+    {a:"das", w:"Fahrrad", en:"bicycle", rule:"none"}, {a:"das", w:"Flugzeug", en:"airplane", rule:"none"},
+    {a:"das", w:"Schiff", en:"ship", rule:"none"}, {a:"das", w:"Taxi", en:"taxi", rule:"none"},
+    {a:"das", w:"Ticket", en:"ticket", rule:"none"}, {a:"das", w:"Hotel", en:"hotel", rule:"none"},
+    {a:"das", w:"Restaurant", en:"restaurant", rule:"none"}, {a:"das", w:"Café", en:"cafe", rule:"none"},
+    {a:"das", w:"Krankenhaus", en:"hospital", rule:"none"}, {a:"das", w:"Geschäft", en:"shop", rule:"none"},
+    {a:"das", w:"Zimmer", en:"room", rule:"none"}, {a:"das", w:"Wohnzimmer", en:"living room", rule:"none"},
+    {a:"das", w:"Schlafzimmer", en:"bedroom", rule:"none"}, {a:"das", w:"Bad", en:"bathroom", rule:"none"},
+    {a:"das", w:"Fenster", en:"window", rule:"none"}, {a:"das", w:"Dach", en:"roof", rule:"none"},
+    {a:"das", w:"Bett", en:"bed", rule:"none"}, {a:"das", w:"Sofa", en:"sofa", rule:"none"},
+    {a:"das", w:"Regal", en:"shelf", rule:"none"}, {a:"das", w:"Buch", en:"book", rule:"none"},
+    {a:"das", w:"Heft", en:"notebook", rule:"none"}, {a:"das", w:"Papier", en:"paper", rule:"none"},
+    {a:"das", w:"Wörterbuch", en:"dictionary", rule:"none"}, {a:"das", w:"Handy", en:"cellphone", rule:"none"},
+    {a:"das", w:"Telefon", en:"telephone", rule:"none"}, {a:"das", w:"Bild", en:"picture", rule:"none"},
+    {a:"das", w:"Foto", en:"photo", rule:"none"}, {a:"das", w:"Geld", en:"money", rule:"none"},
+    {a:"das", w:"Portemonnaie", en:"wallet", rule:"none"}, {a:"das", w:"Gesicht", en:"face", rule:"none"},
+    {a:"das", w:"Auge", en:"eye", rule:"none"}, {a:"das", w:"Ohr", en:"ear", rule:"none"},
+    {a:"das", w:"Haar", en:"hair", rule:"none"}, {a:"das", w:"Bein", en:"leg", rule:"none"},
+    {a:"das", w:"Herz", en:"heart", rule:"none"}, {a:"das", w:"Problem", en:"problem", rule:"none"},
+    {a:"das", w:"Thema", en:"topic", rule:"none"}, {a:"das", w:"Spiel", en:"game", rule:"none"},
+    {a:"das", w:"Hobby", en:"hobby", rule:"none"}, {a:"das", w:"Kino", en:"cinema", rule:"none"},
+    {a:"das", w:"Theater", en:"theater", rule:"none"}, {a:"das", w:"Konzert", en:"concert", rule:"none"},
+    {a:"das", w:"Lied", en:"song", rule:"none"}, {a:"das", w:"Wort", en:"word", rule:"none"},
+    {a:"das", w:"Beispiel", en:"example", rule:"none"}, {a:"das", w:"Tier", en:"animal", rule:"none"},
+    {a:"das", w:"Pferd", en:"horse", rule:"none"}, {a:"das", w:"Schwein", en:"pig", rule:"none"},
+    {a:"das", w:"Schaf", en:"sheep", rule:"none"},
+    {a:"der", w:"Anzug", en:"suit", rule:"none"}, {a:"die", w:"Jacke", en:"jacket", rule:"none"},
+    {a:"die", w:"Hose", en:"pants", rule:"none"}, {a:"das", w:"Hemd", en:"shirt", rule:"none"},
+    {a:"das", w:"T-Shirt", en:"T-shirt", rule:"none"}, {a:"der", w:"Pullover", en:"sweater", rule:"none"},
+    {a:"der", w:"Mantel", en:"coat", rule:"none"}, {a:"der", w:"Schuh", en:"shoe", rule:"none"},
+    {a:"der", w:"Hut", en:"hat", rule:"none"}, {a:"die", w:"Mütze", en:"cap", rule:"none"},
+    {a:"der", w:"Schal", en:"scarf", rule:"none"}, {a:"die", w:"Socke", en:"sock", rule:"none"},
+    {a:"der", w:"Rock", en:"skirt", rule:"none"}, {a:"das", w:"Kleid", en:"dress", rule:"none"},
+    {a:"der", w:"Ring", en:"ring", rule:"none"}, {a:"die", w:"Kette", en:"necklace", rule:"none"},
+    {a:"der", w:"Regenschirm", en:"umbrella", rule:"none"}, {a:"die", w:"Seife", en:"soap", rule:"none"},
+    {a:"das", w:"Handtuch", en:"towel", rule:"none"}, {a:"die", w:"Zahnbürste", en:"toothbrush", rule:"none"},
+    {a:"die", w:"Zahnpasta", en:"toothpaste", rule:"none"}, {a:"der", w:"Kamm", en:"comb", rule:"none"},
+    {a:"die", w:"Bürste", en:"brush", rule:"none"}, {a:"die", w:"Schere", en:"scissors", rule:"none"},
+    {a:"der", w:"Mülleimer", en:"trash can", rule:"none"}, {a:"der", w:"Teller", en:"plate", rule:"none"},
+    {a:"die", w:"Tasse", en:"cup", rule:"none"}, {a:"das", w:"Glas", en:"glass", rule:"none"},
+    {a:"die", w:"Gabel", en:"fork", rule:"none"}, {a:"das", w:"Messer", en:"knife", rule:"none"},
+    {a:"der", w:"Löffel", en:"spoon", rule:"none"}, {a:"der", w:"Topf", en:"pot", rule:"none"},
+    {a:"die", w:"Pfanne", en:"pan", rule:"none"}, {a:"die", w:"Flasche", en:"bottle", rule:"none"},
+    {a:"die", w:"Dose", en:"can", rule:"none"}, {a:"der", w:"Karton", en:"cardboard box", rule:"none"},
+    {a:"die", w:"Tüte", en:"bag", rule:"none"}, {a:"der", w:"Koffer", en:"suitcase", rule:"none"},
+    {a:"der", w:"Rucksack", en:"backpack", rule:"none"}, {a:"die", w:"Rechnung", en:"bill", rule:"suffix-die"},
+    {a:"die", w:"Quittung", en:"receipt", rule:"suffix-die"}, {a:"die", w:"Garantie", en:"guarantee", rule:"suffix-die"},
+    {a:"der", w:"Vertrag", en:"contract", rule:"none"}, {a:"die", w:"Firma", en:"company", rule:"none"},
+    {a:"das", w:"Büro", en:"office", rule:"none"}, {a:"der", w:"Termin", en:"appointment", rule:"none"},
+    {a:"der", w:"Kalender", en:"calendar", rule:"none"}, {a:"die", w:"Konferenz", en:"conference", rule:"none"},
+    {a:"das", w:"Meeting", en:"meeting", rule:"none"}, {a:"das", w:"Projekt", en:"project", rule:"none"},
+    {a:"der", w:"Plan", en:"plan", rule:"none"}, {a:"das", w:"Ziel", en:"goal", rule:"none"},
+    {a:"die", w:"Aufgabe", en:"task", rule:"none"}, {a:"der", w:"Fehler", en:"mistake", rule:"none"},
+    {a:"die", w:"Lösung", en:"solution", rule:"suffix-die"}, {a:"der", w:"Test", en:"test", rule:"none"},
+    {a:"die", w:"Prüfung", en:"exam", rule:"suffix-die"}, {a:"das", w:"Ergebnis", en:"result", rule:"none"},
+    {a:"die", w:"Note", en:"grade", rule:"none"}, {a:"das", w:"Zeugnis", en:"report card", rule:"none"},
+    {a:"der", w:"Kurs", en:"course", rule:"none"}, {a:"die", w:"Lektion", en:"lesson", rule:"suffix-die"},
+    {a:"die", w:"Hausaufgabe", en:"homework", rule:"none"}, {a:"der", w:"Satz", en:"sentence", rule:"none"},
+    {a:"der", w:"Text", en:"text", rule:"none"}, {a:"die", w:"Seite", en:"page", rule:"none"},
+    {a:"die", w:"Geschichte", en:"story", rule:"none"}, {a:"das", w:"Märchen", en:"fairy tale", rule:"suffix-das"},
+    {a:"das", w:"Gedicht", en:"poem", rule:"none"}, {a:"der", w:"Roman", en:"novel", rule:"none"},
+    {a:"der", w:"Autor", en:"author", rule:"suffix-der"}, {a:"die", w:"Bühne", en:"stage", rule:"none"},
+    {a:"der", w:"Zuschauer", en:"spectator", rule:"none"}, {a:"die", w:"Ausstellung", en:"exhibition", rule:"suffix-die"},
+    {a:"der", w:"Künstler", en:"artist", rule:"none"}, {a:"das", w:"Instrument", en:"instrument", rule:"suffix-das"},
+    {a:"die", w:"Gitarre", en:"guitar", rule:"none"}, {a:"das", w:"Klavier", en:"piano", rule:"none"},
+    {a:"die", w:"Geige", en:"violin", rule:"none"}, {a:"der", w:"Sänger", en:"singer", rule:"none"},
+    {a:"die", w:"Band", en:"band", rule:"none"}, {a:"der", w:"Sport", en:"sport", rule:"none"},
+    {a:"der", w:"Fußball", en:"football", rule:"none"}, {a:"der", w:"Ball", en:"ball", rule:"none"},
+    {a:"die", w:"Mannschaft", en:"team", rule:"suffix-die"}, {a:"der", w:"Spieler", en:"player", rule:"none"},
+    {a:"der", w:"Trainer", en:"coach", rule:"none"}, {a:"der", w:"Sieg", en:"victory", rule:"none"},
+    {a:"die", w:"Niederlage", en:"defeat", rule:"none"}, {a:"das", w:"Tor", en:"goal", rule:"none"},
+    {a:"der", w:"Bürger", en:"citizen", rule:"none"}, {a:"der", w:"Staat", en:"state", rule:"none"},
+    {a:"die", w:"Regierung", en:"government", rule:"suffix-die"}, {a:"das", w:"Gesetz", en:"law", rule:"none"},
+    {a:"die", w:"Polizei", en:"police", rule:"none"}, {a:"der", w:"Verkehr", en:"traffic", rule:"none"},
+    {a:"der", w:"Unfall", en:"accident", rule:"none"}, {a:"der", w:"Stau", en:"traffic jam", rule:"none"},
+    {a:"die", w:"Ampel", en:"traffic light", rule:"none"}, {a:"die", w:"Kreuzung", en:"intersection", rule:"suffix-die"},
+    {a:"die", w:"Ecke", en:"corner", rule:"none"}, {a:"die", w:"Richtung", en:"direction", rule:"suffix-die"},
+    {a:"die", w:"Brücke", en:"bridge", rule:"none"}, {a:"der", w:"Weg", en:"way", rule:"none"},
+    {a:"die", w:"Autobahn", en:"highway", rule:"none"}, {a:"die", w:"Tankstelle", en:"gas station", rule:"none"},
+    {a:"das", w:"Benzin", en:"gasoline", rule:"none"}, {a:"die", w:"Werkstatt", en:"garage/workshop", rule:"none"},
+    {a:"der", w:"Motorrad", en:"motorcycle", rule:"none"}, {a:"der", w:"LKW", en:"truck", rule:"none"},
+    {a:"die", w:"Maschine", en:"machine", rule:"none"}, {a:"das", w:"Werkzeug", en:"tool", rule:"none"},
+    {a:"der", w:"Hammer", en:"hammer", rule:"none"}, {a:"der", w:"Nagel", en:"nail", rule:"none"},
+    {a:"die", w:"Schraube", en:"screw", rule:"none"}, {a:"das", w:"Holz", en:"wood", rule:"none"},
+    {a:"das", w:"Metall", en:"metal", rule:"none"}, {a:"das", w:"Plastik", en:"plastic", rule:"none"},
+    {a:"das", w:"Glas", en:"glass", rule:"none"}, {a:"die", w:"Wolle", en:"wool", rule:"none"},
+    {a:"die", w:"Baumwolle", en:"cotton", rule:"none"}, {a:"die", w:"Seide", en:"silk", rule:"none"},
+    {a:"das", w:"Gold", en:"gold", rule:"none"}, {a:"das", w:"Silber", en:"silver", rule:"none"},
+    {a:"das", w:"Eisen", en:"iron", rule:"none"}, {a:"die", w:"Farbe", en:"color", rule:"none"},
+    {a:"der", w:"Schatten", en:"shadow", rule:"none"}, {a:"das", w:"Licht", en:"light", rule:"none"},
+    {a:"die", w:"Dunkelheit", en:"darkness", rule:"suffix-die"}, {a:"die", w:"Wärme", en:"warmth", rule:"none"},
+    {a:"die", w:"Kälte", en:"cold", rule:"none"}, {a:"der", w:"Stern", en:"star", rule:"none"},
+    {a:"der", w:"Mond", en:"moon", rule:"none"}, {a:"der", w:"Himmel", en:"sky", rule:"none"},
+    {a:"die", w:"Erde", en:"earth", rule:"none"}, {a:"das", w:"Meer", en:"sea", rule:"none"},
+    {a:"der", w:"Ozean", en:"ocean", rule:"none"}, {a:"der", w:"See", en:"lake", rule:"none"},
+    {a:"der", w:"Strand", en:"beach", rule:"none"}, {a:"die", w:"Insel", en:"island", rule:"none"},
+    {a:"die", w:"Küste", en:"coast", rule:"none"}, {a:"die", w:"Welle", en:"wave", rule:"none"},
+    {a:"der", w:"Sand", en:"sand", rule:"none"}, {a:"der", w:"Stein", en:"stone", rule:"none"},
+    {a:"die", w:"Höhle", en:"cave", rule:"none"}, {a:"das", w:"Tal", en:"valley", rule:"none"},
+    {a:"die", w:"Wiese", en:"meadow", rule:"none"}, {a:"das", w:"Feld", en:"field", rule:"none"},
+    {a:"der", w:"Bauer", en:"farmer", rule:"nat-masc"}, {a:"der", w:"Hof", en:"farm/courtyard", rule:"none"},
+    {a:"das", w:"Dorf", en:"village", rule:"none"}, {a:"die", w:"Hauptstadt", en:"capital", rule:"none"},
+    {a:"das", w:"Land", en:"country", rule:"none"}, {a:"die", w:"Grenze", en:"border", rule:"none"},
+    {a:"der", w:"Ausländer", en:"foreigner", rule:"none"}, {a:"die", w:"Heimat", en:"homeland", rule:"none"},
+    {a:"die", w:"Kultur", en:"culture", rule:"none"}, {a:"die", w:"Religion", en:"religion", rule:"suffix-die"},
+    {a:"die", w:"Kirche", en:"church", rule:"none"}, {a:"der", w:"Gott", en:"god", rule:"none"},
+    {a:"der", w:"Mensch", en:"human", rule:"none"}, {a:"die", w:"Person", en:"person", rule:"none"},
+    {a:"die", w:"Leute", en:"people (pl.)", rule:"none"}, {a:"der", w:"Gast", en:"guest", rule:"none"},
+    {a:"die", w:"Einladung", en:"invitation", rule:"suffix-die"}, {a:"das", w:"Fest", en:"festival/party", rule:"none"},
+    {a:"die", w:"Party", en:"party", rule:"none"}, {a:"das", w:"Geschenk", en:"gift", rule:"none"},
+    {a:"der", w:"Glückwunsch", en:"congratulation", rule:"none"}, {a:"das", w:"Glück", en:"luck", rule:"none"},
+    {a:"der", w:"Spaß", en:"fun", rule:"none"}, {a:"der", w:"Witz", en:"joke", rule:"none"},
+    {a:"das", w:"Lächeln", en:"smile", rule:"none"}, {a:"die", w:"Träne", en:"tear", rule:"none"},
+    {a:"der", w:"Schmerz", en:"pain", rule:"none"}, {a:"die", w:"Krankenpflege", en:"nursing", rule:"none"},
+    {a:"das", w:"Medikament", en:"medicine", rule:"suffix-das"}, {a:"die", w:"Tablette", en:"pill", rule:"none"},
+    {a:"das", w:"Rezept", en:"prescription/recipe", rule:"none"}, {a:"die", w:"Operation", en:"surgery", rule:"suffix-die"},
+    {a:"das", w:"Blut", en:"blood", rule:"none"}, {a:"die", w:"Gesundheit", en:"health", rule:"suffix-die"},
+    {a:"die", w:"Erkältung", en:"cold (illness)", rule:"suffix-die"}, {a:"das", w:"Fieber", en:"fever", rule:"none"},
+    {a:"der", w:"Husten", en:"cough", rule:"none"}, {a:"der", w:"Schnupfen", en:"sniffles", rule:"none"},
+    {a:"die", w:"Atem", en:"breath", rule:"none"}, {a:"das", w:"Leben", en:"life", rule:"none"},
+    {a:"der", w:"Tod", en:"death", rule:"none"}, {a:"die", w:"Geburt", en:"birth", rule:"none"},
+    {a:"das", w:"Alter", en:"age", rule:"none"}, {a:"die", w:"Jugend", en:"youth", rule:"none"},
+    {a:"der", w:"Erwachsene", en:"adult", rule:"none"}, {a:"der", w:"Rentner", en:"pensioner", rule:"none"},
+    {a:"die", w:"Generation", en:"generation", rule:"suffix-die"}, {a:"die", w:"Ehe", en:"marriage", rule:"none"},
+    {a:"die", w:"Hochzeit", en:"wedding", rule:"suffix-die"}, {a:"die", w:"Scheidung", en:"divorce", rule:"suffix-die"},
+    {a:"der", w:"Partner", en:"partner", rule:"none"}, {a:"das", w:"Paar", en:"couple", rule:"none"},
+    {a:"die", w:"Beziehung", en:"relationship", rule:"suffix-die"}, {a:"der", w:"Kuss", en:"kiss", rule:"none"},
+    {a:"der", w:"Streit", en:"argument", rule:"none"}, {a:"der", w:"Frieden", en:"peace", rule:"none"},
+    {a:"der", w:"Krieg", en:"war", rule:"none"}, {a:"die", w:"Waffe", en:"weapon", rule:"none"},
+    {a:"das", w:"Militär", en:"military", rule:"none"}, {a:"der", w:"Soldat", en:"soldier", rule:"none"},
+    {a:"die", w:"Gefahr", en:"danger", rule:"none"}, {a:"die", w:"Sicherheit", en:"security", rule:"suffix-die"},
+    {a:"der", w:"Schutz", en:"protection", rule:"none"}, {a:"die", w:"Hilfe", en:"help", rule:"none"},
+    {a:"der", w:"Retter", en:"rescuer", rule:"none"}, {a:"der", w:"Notfall", en:"emergency", rule:"none"},
+    {a:"die", w:"Feuerwehr", en:"fire department", rule:"none"}, {a:"der", w:"Brand", en:"fire/blaze", rule:"none"},
+    {a:"der", w:"Rauch", en:"smoke", rule:"none"}, {a:"die", w:"Asche", en:"ashes", rule:"none"},
+    {a:"der", w:"Müll", en:"rubbish", rule:"none"}, {a:"der", w:"Dreck", en:"dirt", rule:"none"},
+    {a:"der", w:"Staub", en:"dust", rule:"none"}, {a:"der", w:"Flecken", en:"stain", rule:"none"},
+    {a:"die", w:"Seife", en:"soap", rule:"none"}, {a:"das", w:"Waschbecken", en:"sink", rule:"none"},
+    {a:"die", w:"Badewanne", en:"bathtub", rule:"none"}, {a:"der", w:"Spiegel", en:"mirror", rule:"none"},
+    {a:"das", w:"Handtuch", en:"towel", rule:"none"}, {a:"der", w:"Föhn", en:"hairdryer", rule:"none"},
+    {a:"das", w:"Shampoo", en:"shampoo", rule:"none"}, {a:"das", w:"Duschgel", en:"shower gel", rule:"none"},
+    {a:"die", w:"Creme", en:"cream", rule:"none"}, {a:"das", w:"Parfüm", en:"perfume", rule:"none"},
+    {a:"der", w:"Lippenstift", en:"lipstick", rule:"none"}, {a:"die", w:"Schminke", en:"makeup", rule:"none"},
+    {a:"die", w:"Rasur", en:"shave", rule:"none"}, {a:"der", w:"Bart", en:"beard", rule:"none"},
+    {a:"das", w:"Tattoo", en:"tattoo", rule:"none"}, {a:"die", w:"Narbe", en:"scar", rule:"none"},
+    {a:"der", w:"Knochen", en:"bone", rule:"none"}, {a:"der", w:"Muskel", en:"muscle", rule:"none"},
+    {a:"das", w:"Gehirn", en:"brain", rule:"none"}, {a:"der", w:"Nerv", en:"nerve", rule:"none"},
+    {a:"das", w:"Gelenk", en:"joint", rule:"none"}, {a:"die", w:"Haut", en:"skin", rule:"none"},
+    {a:"der", w:"Schweiß", en:"sweat", rule:"none"}, {a:"das", w:"Fett", en:"fat", rule:"none"},
+    {a:"das", w:"Gewicht", en:"weight", rule:"none"}, {a:"die", w:"Diät", en:"diet", rule:"none"},
+    {a:"der", w:"Hunger", en:"hunger", rule:"none"}, {a:"der", w:"Durst", en:"thirst", rule:"none"},
+    {a:"der", w:"Appetit", en:"appetite", rule:"none"}, {a:"die", w:"Mahlzeit", en:"meal", rule:"none"},
+    {a:"das", w:"Frühstück", en:"breakfast", rule:"none"}, {a:"das", w:"Mittagessen", en:"lunch", rule:"none"},
+    {a:"das", w:"Abendessen", en:"dinner", rule:"none"}, {a:"der", w:"Nachtisch", en:"dessert", rule:"none"},
+    {a:"die", w:"Vorspeise", en:"appetizer", rule:"none"}, {a:"die", w:"Hauptspeise", en:"main course", rule:"none"},
+    {a:"die", w:"Zutat", en:"ingredient", rule:"none"}, {a:"das", w:"Gewürz", en:"spice", rule:"none"},
+    {a:"der", w:"Knoblauch", en:"garlic", rule:"none"}, {a:"die", w:"Zwiebel", en:"onion", rule:"none"},
+    {a:"die", w:"Möhre", en:"carrot", rule:"none"}, {a:"der", w:"Kohl", en:"cabbage", rule:"none"},
+    {a:"der", w:"Pilz", en:"mushroom", rule:"none"}, {a:"die", w:"Nudel", en:"noodle", rule:"none"},
+    {a:"der", w:"Reis", en:"rice", rule:"none"}, {a:"das", w:"Mehl", en:"flour", rule:"none"},
+    {a:"der", w:"Teig", en:"dough", rule:"none"}, {a:"die", w:"Sahne", en:"cream", rule:"none"},
+    {a:"der", w:"Essig", en:"vinegar", rule:"none"}, {a:"der", w:"Senf", en:"mustard", rule:"none"},
+    {a:"Ketchup", w:"Ketchup", en:"ketchup", rule:"none"}, {a:"die", w:"Marmelade", en:"jam", rule:"none"},
+    {a:"der", w:"Honig", en:"honey", rule:"none"}, {a:"die", w:"Schokolade", en:"chocolate", rule:"none"},
+    {a:"der", w:"Keks", en:"cookie", rule:"none"}, {a:"das", w:"Bonbon", en:"candy", rule:"none"},
+    {a:"das", w:"Eis", en:"ice cream", rule:"none"}, {a:"die", w:"Torte", en:"cake/tart", rule:"none"},
+    {a:"die", w:"Pflicht", en:"duty", rule:"none"}, {a:"das", w:"Recht", en:"right/law", rule:"none"},
+    {a:"die", w:"Freiheit", en:"freedom", rule:"suffix-die"}, {a:"die", w:"Hoffnung", en:"hope", rule:"suffix-die"},
+    {a:"der", w:"Zweifel", en:"doubt", rule:"none"}, {a:"das", w:"Wunder", en:"miracle", rule:"none"},
+    {a:"der", w:"Glaube", en:"belief", rule:"none"}, {a:"die", w:"Wahrheit", en:"truth", rule:"suffix-die"},
+    {a:"die", w:"Lüge", en:"lie", rule:"none"}, {a:"das", w:"Geheimnis", en:"secret", rule:"none"},
+    {a:"die", w:"Überraschung", en:"surprise", rule:"suffix-die"}, {a:"die", w:"Erinnerung", en:"memory", rule:"suffix-die"},
+    {a:"der", w:"Traum", en:"dream", rule:"none"}, {a:"die", w:"Fantasie", en:"imagination", rule:"suffix-die"},
+    {a:"der", w:"Gedanke", en:"thought", rule:"none"}, {a:"der", w:"Verstand", en:"mind", rule:"none"},
+    {a:"die", w:"Meinung", en:"opinion", rule:"suffix-die"}, {a:"die", w:"Erfahrung", en:"experience", rule:"suffix-die"}
+  ];
+
+  const el = {
+    overlay: document.getElementById('overlay'),
+    startBtn: document.getElementById('startBtn'),
+    card: document.getElementById('card'),
+    counterLabel: document.getElementById('counterLabel'),
+    speakerBtn: document.getElementById('speakerBtn'),
+    voiceToggle: document.getElementById('voiceToggle'),
+    colorToggle: document.getElementById('colorToggle'),
+    wordDisplay: document.getElementById('wordDisplay'),
+    glossDisplay: document.getElementById('glossDisplay'),
+    feedback: document.getElementById('feedback'),
+    choices: document.getElementById('choices'),
+    accuracyNum: document.getElementById('accuracyNum'),
+    streakNum: document.getElementById('streakNum'),
+    totalNum: document.getElementById('totalNum'),
+    wrongList: document.getElementById('wrongList'),
+    
+    ruleNatMasc: document.getElementById('ruleNaturalMasculine'),
+    ruleNatFem: document.getElementById('ruleNaturalFeminine'),
+    suffixDie: document.getElementById('suffixRow-die'),
+    suffixDer: document.getElementById('suffixRow-der'),
+    suffixDas: document.getElementById('suffixRow-das')
+  };
+
+  let current = null;
+  let lastWord = null;
+  
+  // Spaced Repetition Arrays
+  let unseenWords = [...WORDS]; 
+  let reviewQueue = []; 
+  
+  let history = [];   
+  let streak = 0;
+  let total = 0;
+  let answering = false;
+  let voices = [];
+
+  function loadVoices(){ voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : []; }
+  if ('speechSynthesis' in window){
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+  }
+
+  // Listens to the Color Toggle
+  el.colorToggle.addEventListener('change', (e) => {
+    el.card.classList.toggle('no-hints', e.target.checked);
+  });
+
+  // Speaks parameters. Respects the toggle switch.
+  function speak(word, withArticle = false){
+    if (!el.voiceToggle.checked) return; // Do nothing if toggle is off
+    if (!('speechSynthesis' in window)) return;
+    
+    window.speechSynthesis.cancel();
+    
+    const phrase = withArticle ? `${word.a} ${word.w}` : word.w;
+    
+    const utter = new SpeechSynthesisUtterance(phrase);
+    utter.lang = 'de-DE';
+    utter.rate = 0.88;
+    const deVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('de'));
+    if (deVoice) utter.voice = deVoice;
+    window.speechSynthesis.speak(utter);
+  }
+
+  function pickWord(){
+    // If all words are completely exhausted (both unseen & reviews), reset everything
+    if (unseenWords.length === 0 && reviewQueue.length === 0) {
+      unseenWords = [...WORDS];
+    }
+    
+    let next;
+    let fromReview = false;
+
+    // Pick from reviewQueue (30% chance if available, or 100% if unseen is empty)
+    if (reviewQueue.length > 0 && (unseenWords.length === 0 || Math.random() < 0.3)) {
+      const idx = Math.floor(Math.random() * reviewQueue.length);
+      next = reviewQueue[idx];
+      reviewQueue.splice(idx, 1);
+      fromReview = true;
+    } else {
+      // Pick from unseen pool
+      const idx = Math.floor(Math.random() * unseenWords.length);
+      next = unseenWords[idx];
+      unseenWords.splice(idx, 1);
+    }
+
+    // Prevent immediate repetition of the exact same word if possible
+    if (lastWord && next.w === lastWord.w && (unseenWords.length + reviewQueue.length) > 0) {
+      if (fromReview) reviewQueue.push(next);
+      else unseenWords.push(next);
+      return pickWord(); // try again
+    }
+
+    lastWord = next;
+    return next;
+  }
+
+  function applyRuleHighlight(ruleType){
+    el.ruleNatMasc.classList.remove('rule-highlight');
+    el.ruleNatFem.classList.remove('rule-highlight');
+    el.suffixDie.classList.remove('rule-highlight');
+    el.suffixDer.classList.remove('rule-highlight');
+    el.suffixDas.classList.remove('rule-highlight');
+
+    if(ruleType === 'nat-masc') el.ruleNatMasc.classList.add('rule-highlight');
+    if(ruleType === 'nat-fem') el.ruleNatFem.classList.add('rule-highlight');
+    if(ruleType === 'suffix-die') el.suffixDie.classList.add('rule-highlight');
+    if(ruleType === 'suffix-der') el.suffixDer.classList.add('rule-highlight');
+    if(ruleType === 'suffix-das') el.suffixDas.classList.add('rule-highlight');
+  }
+
+  function renderStats(){
+    if (history.length === 0){
+      el.accuracyNum.textContent = '—';
+    } else {
+      const correctCount = history.filter(Boolean).length;
+      el.accuracyNum.textContent = Math.round((correctCount / history.length) * 100) + '%';
+    }
+    el.streakNum.textContent = streak;
+    el.totalNum.textContent = total;
+  }
+
+  function handleChoice(gender){
+    if (answering || !current) return;
+    answering = true;
+    total += 1;
+
+    const isCorrect = gender === current.a;
+    streak = isCorrect ? streak + 1 : 0;
+
+    history.push(isCorrect);
+    
+    el.choices.querySelectorAll('.choice').forEach(btn => {
+      btn.disabled = true;
+      if (btn.dataset.gender === current.a) btn.classList.add('reveal-correct');
+      else if (btn.dataset.gender === gender && !isCorrect) btn.classList.add('reveal-wrong');
+    });
+
+    // Speak full sentence upon guessing
+    speak(current, true);
+
+    if (isCorrect){
+      // Correct words are NOT put back into any queue. They are effectively removed.
+      el.feedback.textContent = current.a + ' ' + current.w;
+      el.feedback.className = 'feedback ' + current.a;
+    } else {
+      // Incorrect words are placed into the review queue to be repeated later
+      reviewQueue.push(current);
+
+      el.card.classList.remove('card-masculine', 'card-feminine', 'card-neuter');
+      el.card.classList.add('flash-wrong');
+      el.feedback.textContent = 'Correct: ' + current.a + ' ' + current.w;
+      
+      const logItem = document.createElement('li');
+      logItem.style.color = `var(--${current.a})`; 
+      logItem.textContent = `${current.a} ${current.w} (${current.en})`;
+      el.wrongList.insertBefore(logItem, el.wrongList.firstChild);
+    }
+
+    renderStats();
+    setTimeout(nextWord, 2000); // 2 second delay to let voice finish the full sentence
+  }
+
+  function nextWord(){
+    current = pickWord();
+    answering = false;
+    
+    el.choices.querySelectorAll('.choice').forEach(btn => {
+      btn.disabled = false;
+      btn.classList.remove('reveal-correct', 'reveal-wrong');
+    });
+    
+    // Set card gender class dynamically to auto-tint pink or blue when given
+    el.card.className = 'card';
+    if (el.colorToggle.checked) {
+      el.card.classList.add('no-hints');
+    }
+    if (current.a === 'der') {
+      el.card.classList.add('card-masculine');
+    } else if (current.a === 'die') {
+      el.card.classList.add('card-feminine');
+    } else {
+      el.card.classList.add('card-neuter');
+    }
+
+    el.feedback.textContent = '';
+    el.feedback.className = 'feedback';
+    
+    el.counterLabel.textContent = 'WORD ' + (total + 1);
+    el.wordDisplay.textContent = current.w;
+    el.glossDisplay.textContent = current.en;
+    
+    applyRuleHighlight(current.rule);
+    
+    // Play only the core root word initially (if toggle is on)
+    speak(current, false);
+  }
+
+  el.choices.querySelectorAll('.choice').forEach(btn => {
+    btn.addEventListener('click', () => handleChoice(btn.dataset.gender));
+  });
+
+  el.speakerBtn.addEventListener('click', () => {
+    if (current) speak(current, answering); // Play core word if guessing, full phrase if already answered
+  });
+
+  el.startBtn.addEventListener('click', () => {
+    el.overlay.style.display = 'none';
+    nextWord();
+  });
+})();
+</script>
+
+</body>
+</html>
