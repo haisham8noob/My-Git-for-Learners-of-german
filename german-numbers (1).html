@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Counting in German, 1 to 1000 by Haisam Rasheedh</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1b1f27; --muted:#6a7280; --line:#dde1e8;
+    --unit:#0b6bcb; --und:#8a93a3; --ten:#c2185b; --odd:#7a4fd0;
+    --unit-bg:#e3f0fd; --ten-bg:#fde6ef; --odd-bg:#efe8fb; --hun:#0f8a5f; --hun-bg:#dff5ec;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14171c; --card:#1d2128; --ink:#eef0f4; --muted:#98a1b0; --line:#2c323c;
+      --unit:#6cb2ff; --und:#8d97a8; --ten:#ff7aa8; --odd:#b79cff;
+      --unit-bg:#173250; --ten-bg:#4a1b30; --odd-bg:#2f2550; --hun:#4fd9a2; --hun-bg:#12392c;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5}
+  main{max-width:1000px;margin:0 auto;padding:28px 16px 60px}
+  h1{font-size:clamp(1.6rem,4vw,2.3rem);margin:0 0 6px}
+  p.lead{color:var(--muted);margin:0 0 20px;max-width:62ch}
+  .u{color:var(--unit);font-weight:700} .t{color:var(--ten);font-weight:700}
+  .a{color:var(--und);font-weight:700} .h{color:var(--hun);font-weight:700} .o{color:var(--odd);font-weight:700}
+
+  .rule{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:18px}
+  .rule h2{font-size:1.05rem;margin:0 0 10px}
+  .formula{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:1.25rem;margin:6px 0 10px}
+  .chip{padding:4px 10px;border-radius:8px;font-weight:700}
+  .chip.unit{background:var(--unit-bg);color:var(--unit)}
+  .chip.ten{background:var(--ten-bg);color:var(--ten)}
+  .chip.odd{background:var(--odd-bg);color:var(--odd)}
+  .chip.hun{background:var(--hun-bg);color:var(--hun)}
+  .chip.und{border:1px dashed var(--und);color:var(--und)}
+  .rule ul{margin:8px 0 0;padding-left:20px;color:var(--muted)}
+  .rule li{margin:3px 0}
+
+  .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:16px}
+  .controls button{font:inherit;padding:7px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+  .controls button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .controls .sp{flex:1}
+  .controls select{font:inherit;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+  .say{font:inherit;margin-top:8px;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+  button:focus-visible{outline:3px solid var(--unit);outline-offset:2px}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+  .num{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-align:left;font:inherit;color:inherit;cursor:pointer;display:block;width:100%}
+  .num:hover{border-color:var(--muted)}
+  .digit{font-size:.85rem;color:var(--muted)}
+  .word{font-size:1.25rem;margin-top:2px;word-break:break-word}
+  .eng{font-size:.8rem;color:var(--muted);margin-top:2px;min-height:1.2em}
+  .num.hidden .word span{visibility:hidden}
+  .num.hidden .word::after{content:"tap to reveal";color:var(--muted);font-size:.85rem}
+  .num.hidden .eng{visibility:hidden}
+
+  .detail{position:sticky;bottom:10px;margin-top:18px;background:var(--card);border:2px solid var(--ink);border-radius:12px;padding:14px 16px;min-height:64px}
+  .detail .big{font-size:1.5rem}
+  .detail .sub{color:var(--muted);font-size:.9rem;margin-top:4px}
+  .sectionhead{margin:22px 0 8px;font-size:1.05rem;color:var(--muted);font-weight:600}
+</style>
+</head>
+<body>
+<main>
+  <h1>Counting in German, 1 to 1000 by Haisam Rasheedh</h1>
+  <p class="lead">German says the small number first, then the big one. 41 is spoken "one-and-forty". Tap any number to see it taken apart and hear it said aloud.</p>
+
+  <section class="rule" aria-label="The rule">
+    <h2>The pattern for 21 to 99</h2>
+    <div class="formula">
+      <span class="chip unit">ones</span><span>+</span><span class="chip und">und</span><span>+</span><span class="chip ten">tens</span>
+      <span>=</span><span><span class="u">ein</span><span class="a">und</span><span class="t">vierzig</span></span><span style="color:var(--muted);font-size:.95rem">(one + and + forty = 41)</span>
+    </div>
+    <ul>
+      <li><span class="chip odd">purple</span> = numbers you simply memorize (1 to 12).</li>
+      <li>13 to 19 are "ones + ten": <span class="u">drei</span><span class="t">zehn</span> = three-ten = 13. Same idea as English "thir-teen".</li>
+      <li>In the middle of a number, 1 is <b>ein</b>, not <b>eins</b>: <span class="u">ein</span><span class="a">und</span><span class="t">zwanzig</span> = 21.</li>
+      <li>Small spelling changes: sechs becomes <b>sech</b>zehn / <b>sech</b>zig, sieben becomes <b>sieb</b>zehn / <b>sieb</b>zig, and 30 is <b>dreißig</b> (not dreizig).</li>
+      <li><span class="chip hun">green</span> = hundreds. Say the hundreds first, then the last two digits follow the rules above: 121 = <span class="u">ein</span><span class="h">hundert</span><span class="u">ein</span><span class="a">und</span><span class="t">zwanzig</span> (one-hundred-one-and-twenty). 1000 is <span class="u">ein</span><span class="h">tausend</span>.</li>
+      <li>German numbers are written as one long word, with no spaces. Note that 101 ends in <b>eins</b> (einhunderteins), because the 1 is at the end again.</li>
+    </ul>
+  </section>
+
+  <div class="controls" role="group" aria-label="Choose numbers">
+    <label for="range">Show:</label>
+    <select id="range">
+      <option value="1-100" selected>1 to 100</option>
+      <option value="1-20">1 to 20 (memorize)</option>
+      <option value="21-99">21 to 99 (the pattern)</option>
+      <option value="101-200">101 to 200</option><option value="201-300">201 to 300</option>
+      <option value="301-400">301 to 400</option><option value="401-500">401 to 500</option>
+      <option value="501-600">501 to 600</option><option value="601-700">601 to 700</option>
+      <option value="701-800">701 to 800</option><option value="801-900">801 to 900</option>
+      <option value="901-1000">901 to 1000</option><option value="1-1000">Everything (1 to 1000)</option>
+    </select>
+    <span class="sp"></span>
+    <button id="test" aria-pressed="false">Test myself</button>
+    <button id="showall" hidden>Reveal all</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="detail" id="detail" aria-live="polite">
+    <div class="sub">Tap a number above to see how it is built.</div>
+  </div>
+</main>
+
+<script>
+const ones = ["", "ein", "zwei", "drei", "vier", "fünf", "sechs", "sieben", "acht", "neun"];
+const onesEn = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+const stem = {6: "sech", 7: "sieb"};               // used before -zehn and -zig
+const tens = {2: "zwanzig", 3: "dreißig", 4: "vierzig", 5: "fünfzig", 6: "sechzig", 7: "siebzig", 8: "achtzig", 9: "neunzig"};
+const tensEn = {2: "twenty", 3: "thirty", 4: "forty", 5: "fifty", 6: "sixty", 7: "seventy", 8: "eighty", 9: "ninety"};
+const special = {
+  1: ["eins", "one"], 2: ["zwei", "two"], 3: ["drei", "three"], 4: ["vier", "four"], 5: ["fünf", "five"],
+  6: ["sechs", "six"], 7: ["sieben", "seven"], 8: ["acht", "eight"], 9: ["neun", "nine"], 10: ["zehn", "ten"],
+  11: ["elf", "eleven"], 12: ["zwölf", "twelve"]
+};
+
+// Each number becomes a list of parts: {t: text, k: kind, e: English meaning}
+// kinds: odd (memorize), unit (ones), und (and), ten (tens)
+function build(n) {
+  if (n === 1000) return [{t: "ein", k: "unit", e: "one"}, {t: "tausend", k: "hun", e: "thousand"}];
+  if (n > 100) {
+    const h = Math.floor(n / 100), r = n % 100;
+    const head = [{t: ones[h], k: "unit", e: onesEn[h]}, {t: "hundert", k: "hun", e: "hundred"}];
+    return r ? head.concat(build(r)) : head;
+  }
+  if (n <= 12) return [{t: special[n][0], k: "odd", e: special[n][1]}];
+  if (n <= 19) {
+    const d = n - 10;
+    return [{t: stem[d] || ones[d], k: "unit", e: onesEn[d]}, {t: "zehn", k: "ten", e: "ten"}];
+  }
+  if (n === 100) return [{t: "ein", k: "unit", e: "one"}, {t: "hundert", k: "hun", e: "hundred"}];
+  const t = Math.floor(n / 10), u = n % 10;
+  const tenWord = {t: tens[t], k: "ten", e: tensEn[t]};
+  if (u === 0) return [tenWord];
+  const w = (t === 6 || t === 7) ? tenWord : tenWord;
+  return [{t: ones[u], k: "unit", e: onesEn[u]}, {t: "und", k: "und", e: "and"}, w];
+}
+
+const cls = {odd: "o", unit: "u", und: "a", ten: "t", hun: "h"};
+const html = parts => parts.map(p => `<span class="${cls[p.k]}">${p.t}</span>`).join("");
+const eng = parts => parts.map(p => p.e).join("-");
+
+const grid = document.getElementById("grid");
+const detail = document.getElementById("detail");
+let testMode = false;
+
+for (let n = 1; n <= 1000; n++) {
+  const parts = build(n);
+  const b = document.createElement("button");
+  b.className = "num";
+  b.dataset.n = n;
+  b.innerHTML = `<div class="digit">${n}</div><div class="word"><span>${html(parts)}</span></div><div class="eng">${n > 12 ? eng(parts) : ""}</div>`;
+  b.addEventListener("click", () => {
+    if (testMode && b.classList.contains("hidden")) b.classList.remove("hidden");
+    show(n);
+  });
+  grid.appendChild(b);
+}
+
+function show(n) {
+  const parts = build(n);
+  let note = "";
+  if (n <= 12) note = "Memorize this one. No pattern yet.";
+  else if (n <= 19) note = "Ones first, then <b>zehn</b> (ten). Read it backwards from English: " + eng(parts) + ".";
+  else if (n === 100) note = "Just \"one hundred\".";
+  else if (n === 1000) note = "Just \"one thousand\".";
+  else if (n > 100) note = "Hundreds first" + (n % 100 ? ", then the last two digits follow the same rules as before. " : ". ") + "Word order: " + eng(parts) + ".";
+  else if (n % 10 === 0) note = "A round ten. The word ends in <b>-zig</b> (like English -ty).";
+  else note = "Say the ones, then <b>und</b> (and), then the tens: " + eng(parts) + " = " + n + ".";
+  const plus = parts.map(p => p.t).join(" + ");
+  detail.innerHTML = `<div class="big">${n} = ${html(parts)}</div>
+    <div class="sub">${plus} &nbsp;means&nbsp; ${parts.map(p => p.e).join(" + ")}</div>
+    <div class="sub">${note}</div>
+    <button class="say" id="say">Say it again</button>`;
+  const text = parts.map(p => p.t).join("");
+  document.getElementById("say").addEventListener("click", () => speak(text));
+  speak(text);
+}
+
+// Speak only the German word
+function speak(text) {
+  if (!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "de-DE";
+  const v = speechSynthesis.getVoices().find(v => v.lang.toLowerCase().startsWith("de"));
+  if (v) u.voice = v;
+  u.rate = 0.85;
+  speechSynthesis.speak(u);
+}
+if ("speechSynthesis" in window) speechSynthesis.getVoices();
+
+// Range filter
+const range = document.getElementById("range");
+function applyRange() {
+  const [lo, hi] = range.value.split("-").map(Number);
+  grid.querySelectorAll(".num").forEach(el => {
+    const n = +el.dataset.n;
+    el.style.display = (n >= lo && n <= hi) ? "" : "none";
+  });
+}
+range.addEventListener("change", applyRange);
+applyRange();
+
+// Test mode
+const testBtn = document.getElementById("test"), revealBtn = document.getElementById("showall");
+testBtn.addEventListener("click", () => {
+  testMode = !testMode;
+  testBtn.setAttribute("aria-pressed", testMode);
+  revealBtn.hidden = !testMode;
+  grid.querySelectorAll(".num").forEach(el => el.classList.toggle("hidden", testMode));
+});
+revealBtn.addEventListener("click", () => grid.querySelectorAll(".num").forEach(el => el.classList.remove("hidden")));
+</script>
+</body>
+</html>
